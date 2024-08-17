@@ -2,16 +2,22 @@ package oolong
 
 import (
 	"bytes"
+	"errors"
 	"io"
 )
 
 var (
-	_GRIB_HEADER = [4]byte{0x47, 0x52, 0x49, 0x42} // "GRIB"
+	_GRIB_HEADER        = [4]byte{0x47, 0x52, 0x49, 0x42} // "GRIB"
+	_GRIB_EDITION uint8 = 2                               // GRIB Edition number
+
+	ErrInvalidHeader        = errors.New("oolong: invalid header")         // Error message for invalid header
+	ErrInvalidEditionNumber = errors.New("oolong: invalid edition number") // Error message for invalid edition number
 )
 
 type FileReader interface {
 	io.Reader
 	io.ReaderAt
+	io.Closer
 }
 
 type GRIBReader struct {
@@ -30,7 +36,7 @@ func (g *GRIBReader) ValidaHeader() error {
 	}
 
 	if !bytes.Equal(header, _GRIB_HEADER[:]) {
-		return io.EOF
+		return ErrInvalidHeader
 	}
 
 	return nil
@@ -44,6 +50,6 @@ func (g *GRIBReader) Read(p []byte) (n int, err error) {
 	return g.File.Read(p)
 }
 
-type GRIBBasicInfo struct {
-	Discipline Discipline `json:"discipline"`
+func (g *GRIBReader) Close() error {
+	return g.File.Close()
 }
