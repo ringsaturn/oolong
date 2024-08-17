@@ -2,6 +2,7 @@ package oolong_test
 
 import (
 	"bytes"
+	"encoding/binary"
 	"io"
 	"reflect"
 	"testing"
@@ -9,7 +10,11 @@ import (
 	"github.com/ringsaturn/oolong"
 )
 
-func newReaderFromSec0(sec *oolong.Section0Indicator) io.Reader { return bytes.NewReader(sec.Bytes()) }
+func newReaderFromSection(v any) io.Reader {
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.BigEndian, v)
+	return bytes.NewReader(buf.Bytes())
+}
 
 func TestNewSection0FromBytes(t *testing.T) {
 	tests := []struct {
@@ -42,7 +47,7 @@ func TestNewSection0FromBytes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := newReaderFromSec0(tt.want)
+			r := newReaderFromSection(tt.want)
 			got, err := oolong.NewSection0FromBytes(r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewSection0FromBytes() error = %v, wantErr %v", err, tt.wantErr)
