@@ -1,5 +1,10 @@
 package oolong
 
+import (
+	"encoding/binary"
+	"io"
+)
+
 type Section3GridDefinition struct {
 	Section3Length                   uint32 `byteRange:"1-4"`     // Length of section in octets (nn)
 	NumberOfSection                  uint8  `byteRange:"5"`       // Number of section (3)
@@ -10,4 +15,13 @@ type Section3GridDefinition struct {
 	GridDefinitionTemplateNumber     uint16 `byteRange:"13-14"`   // Grid Definition Template Number (= N) (see Code Table 3.1)
 	GridDefinitionTemplate           []byte `byteRange:"15-xx"`   // Grid Definition Template (see Template 3.N, where N is the Grid Definition Template Number given in octets 13-14)
 	OptionalList                     []byte `byteRange:"xx+1-nn"` // Optional list of numbers defining number of points (see Notes 2, 3 and 4)
+}
+
+func NewSection3FromBytes(r io.Reader) (*Section3GridDefinition, error) {
+	sec := &Section3GridDefinition{}
+	if err := binary.Read(r, binary.BigEndian, sec); err != nil {
+		return nil, err
+	}
+
+	return sec, nil
 }
